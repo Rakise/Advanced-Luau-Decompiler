@@ -14,6 +14,7 @@ local TYPE_NAMES = {
 	[7] = "userdata",
 	[8] = "Vector3",
 	[9] = "buffer",
+	[10] = "integer",
 	[15] = "any",
 }
 
@@ -448,13 +449,20 @@ local Luau = {
 		{ ["name"] = "IDIVK", ["type"] = "ABC" },
 
 		-- Enum entry for number of opcodes, not a valid opcode by itself!
+		-- Atom-based userdata field access acceleration
+		-- These are equivalent to their GETTABLEKS/SETTABLEKS/NAMECALL counterparts, except tailored towards userdata field accesses
+		-- If the user has registered metamethods for a userdata tag, callbacks will be called by these instructions
+		{ ["name"] = "GETUDATAKS", ["type"] = "AC", ["aux"] = true },
+		{ ["name"] = "SETUDATAKS", ["type"] = "AC", ["aux"] = true },
+		{ ["name"] = "NAMECALLUDATA", ["type"] = "AC", ["aux"] = true },
+
 		{ ["name"] = "_COUNT", ["type"] = "none" }
 	},
 	-- bytecode tags, used internally for bytecode encoded as a string
 	BytecodeTag = {
 		-- bytecode version; runtime supports [MIN, MAX], compiler emits TARGET by default but may emit a higher version when flags are enabled
 		LBC_VERSION_MIN = 3,
-		LBC_VERSION_MAX = 6,
+		LBC_VERSION_MAX = 9,
 		LBC_VERSION_TARGET = 6,
 		-- type encoding version
 		LBC_TYPE_VERSION_MIN = 1,
@@ -468,7 +476,9 @@ local Luau = {
 		LBC_CONSTANT_IMPORT = 4,
 		LBC_CONSTANT_TABLE = 5,
 		LBC_CONSTANT_CLOSURE = 6,
-		LBC_CONSTANT_VECTOR = 7
+		LBC_CONSTANT_VECTOR = 7,
+		LBC_CONSTANT_TABLE_WITH_CONSTANTS = 8,
+		LBC_CONSTANT_INTEGER = 9
 	},
 	-- type table tags
 	BytecodeType = {
@@ -482,6 +492,7 @@ local Luau = {
 		LBC_TYPE_USERDATA = 7,
 		LBC_TYPE_VECTOR = 8,
 		LBC_TYPE_BUFFER = 9,
+		LBC_TYPE_INTEGER = 10,
 
 		LBC_TYPE_ANY = 15,
 
@@ -637,6 +648,48 @@ local Luau = {
 		LBF_MATH_ISNAN = 91,
 		LBF_MATH_ISINF = 92,
 		LBF_MATH_ISFINITE = 93,
+
+		-- integer
+		LBF_INTEGER_CREATE = "integer.create",
+		LBF_INTEGER_TONUMBER = "integer.tonumber",
+		LBF_INTEGER_NEG = "integer.neg",
+		LBF_INTEGER_ADD = "integer.add",
+		LBF_INTEGER_SUB = "integer.sub",
+		LBF_INTEGER_MUL = "integer.mul",
+		LBF_INTEGER_DIV = "integer.div",
+		LBF_INTEGER_MIN = "integer.min",
+		LBF_INTEGER_MAX = "integer.max",
+		LBF_INTEGER_REM = "integer.rem",
+		LBF_INTEGER_IDIV = "integer.idiv",
+		LBF_INTEGER_UDIV = "integer.udiv",
+		LBF_INTEGER_UREM = "integer.urem",
+		LBF_INTEGER_MOD = "integer.mod",
+		LBF_INTEGER_CLAMP = "integer.clamp",
+		LBF_INTEGER_BAND = "integer.band",
+		LBF_INTEGER_BOR = "integer.bor",
+		LBF_INTEGER_BNOT = "integer.bnot",
+		LBF_INTEGER_BXOR = "integer.bxor",
+		LBF_INTEGER_LT = "integer.lt",
+		LBF_INTEGER_LE = "integer.le",
+		LBF_INTEGER_ULT = "integer.ult",
+		LBF_INTEGER_ULE = "integer.ule",
+		LBF_INTEGER_GT = "integer.gt",
+		LBF_INTEGER_GE = "integer.ge",
+		LBF_INTEGER_UGT = "integer.ugt",
+		LBF_INTEGER_UGE = "integer.uge",
+		LBF_INTEGER_LSHIFT = "integer.lshift",
+		LBF_INTEGER_RSHIFT = "integer.rshift",
+		LBF_INTEGER_ARSHIFT = "integer.arshift",
+		LBF_INTEGER_LROTATE = "integer.lrotate",
+		LBF_INTEGER_RROTATE = "integer.rrotate",
+		LBF_INTEGER_EXTRACT = "integer.extract",
+		LBF_INTEGER_BTEST = "integer.btest",
+		LBF_INTEGER_COUNTRZ = "integer.countrz",
+		LBF_INTEGER_COUNTLZ = "integer.countlz",
+		LBF_INTEGER_BSWAP = "integer.bswap",
+		-- buffer.readinteger / buffer.writeinteger (int64_t)
+		LBF_BUFFER_READINTEGER = "buffer.readinteger",
+		LBF_BUFFER_WRITEINTEGER = "buffer.writeinteger",
 	},
 	-- proto flag bitmask, stored in proto::flags
 	ProtoFlag = {
@@ -730,4 +783,3 @@ local function prepare(t)
 end
 
 return prepare(Luau)
-

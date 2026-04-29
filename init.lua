@@ -305,6 +305,26 @@ local function Decompile(bytecode)
 						else
 							constValue = "vector.create(".. x ..", ".. y ..", ".. z ..", ".. w ..")"
 						end
+					elseif constType == LuauBytecodeTag.LBC_CONSTANT_TABLE_WITH_CONSTANTS then
+						local sizeTable = reader:nextVarInt()
+						local tableKeys = {}
+						for i = 1, sizeTable do
+							local keyStringId = reader:nextVarInt() + 1
+							table.insert(tableKeys, keyStringId)
+						end
+						constValue = {
+							size = sizeTable,
+							keys = tableKeys,
+							withConstants = true
+						}
+					elseif constType == LuauBytecodeTag.LBC_CONSTANT_INTEGER then
+						if reader.nextInt64 then
+							constValue = reader:nextInt64()
+						else
+							local hi = reader:nextUInt32()
+							local lo = reader:nextUInt32()
+							constValue = string.format("0x%08X%08X", hi, lo)
+						end
 					elseif constType ~= LuauBytecodeTag.LBC_CONSTANT_NIL then
 						-- this is not supposed to happen. result is likely malformed
 					end
@@ -627,7 +647,7 @@ local function Decompile(bytecode)
 						registerAction({A}, {D, aux})
 					elseif opCodeName == "GETTABLE" or opCodeName == "SETTABLE" then
 						registerAction({A, B, C})
-					elseif opCodeName == "GETTABLEKS" or opCodeName == "SETTABLEKS" then
+					elseif opCodeName == "GETTABLEKS" or opCodeName == "SETTABLEKS" or opCodeName == "GETUDATAKS" or opCodeName == "SETUDATAKS" then
 						registerAction({A, B}, {C, aux})
 					elseif opCodeName == "GETTABLEN" or opCodeName == "SETTABLEN" then
 						registerAction({A, B}, {C})
@@ -643,7 +663,7 @@ local function Decompile(bytecode)
 						local proto = protoTable[constants[D + 1].value - 1]
 						collectCaptures(index, proto)
 						baseProto(proto)
-					elseif opCodeName == "NAMECALL" then -- must be followed by CALL
+					elseif opCodeName == "NAMECALL" or opCodeName == "NAMECALLUDATA" then -- must be followed by CALL
 						registerAction({A, B}, {C, aux}, not SHOW_TRIVIAL_OPERATIONS)
 					elseif opCodeName == "CALL" then
 						registerAction({A}, {B, C})
