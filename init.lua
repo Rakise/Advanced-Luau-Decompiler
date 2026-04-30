@@ -95,7 +95,7 @@ local isGlobal = Implementations.isGlobal
 
 Reader:Set(READER_FLOAT_PRECISION)
 
-local function Decompile(bytecode)
+local function Disassemble(bytecode)
 	local bytecodeVersion, typeEncodingVersion
 
 	local reader = Reader.new(bytecode)
@@ -1847,9 +1847,9 @@ if not USE_IN_STUDIO then
 		if DECODE_AS_BASE64 then
 			local toDecode = buffer.fromstring(result)
 			local decoded = Base64.decode(toDecode)
-			decomped, elapsedTime = Decompile(result)
+			decomped, elapsedTime = Disassemble(result)
 		else
-			decomped, elapsedTime = Decompile(result)
+			decomped, elapsedTime = Disassemble(result)
 		end
 		
 		if RETURN_ELAPSED_TIME then
@@ -1862,7 +1862,7 @@ else
 	if DECODE_AS_BASE64 then
 		local toDecode = buffer.fromstring(input)
 		local decoded = Base64.decode(toDecode)
-		local decomped, elapsedTime = Decompile(buffer.tostring(decoded))
+		local decomped, elapsedTime = Disassemble(buffer.tostring(decoded))
 		warn("done decompiling:", elapsedTime or 0)
 		
 		-- Some scripts like Criminality's GunClient are thousands of lines long, and directly setting string properties
