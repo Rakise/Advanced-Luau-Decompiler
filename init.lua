@@ -1817,7 +1817,7 @@ end
 
 if not USE_IN_STUDIO then
 	local _ENV = (getgenv or getrenv or getfenv)()
-	_ENV.decompile = function(script)
+	_ENV.disassemble = function(script)
 		if not getscriptbytecode then
 			error("Your tool is missing the function 'getscriptbytecode'")
 			return
