@@ -18,6 +18,9 @@ local TYPE_NAMES = {
 	[15] = "any",
 }
 
+-- mapping for tagged userdata type names
+local USERDATA_TYPE_NAMES = {}
+
 -- lookup table for builtin function names
 -- indices match luaubuiltinfunction enum values
 local BUILTIN_NAMES = {
@@ -737,12 +740,21 @@ function Luau:INSN_E(insn)
 	return bit32.arshift(bit32.lshift(insn, 8), 8)
 end
 
+function Luau:SetUserdataTypeNames(names)
+	USERDATA_TYPE_NAMES = names or {}
+end
+
 -- type to string for typeinfo
 function Luau:GetBaseTypeString(type, checkOptional)
 	local LuauBytecodeType = Luau.BytecodeType
 	local tag = bit32.band(type, bit32.bnot(LuauBytecodeType.LBC_TYPE_OPTIONAL_BIT))
 
 	local result = TYPE_NAMES[tag]
+
+	if not result and tag >= LuauBytecodeType.LBC_TYPE_TAGGED_USERDATA_BASE and tag < LuauBytecodeType.LBC_TYPE_TAGGED_USERDATA_END then
+		local userdataIndex = tag - LuauBytecodeType.LBC_TYPE_TAGGED_USERDATA_BASE + 1
+		result = USERDATA_TYPE_NAMES[userdataIndex] or "userdata"
+	end
 
 	if not result then
 		error("Unhandled type in GetBaseTypeString", 2)

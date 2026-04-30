@@ -116,6 +116,7 @@ local function Decompile(bytecode)
 		end
 
 		local userdataTypes = {}
+		local hasUserdataTypes = false
 		local function readUserdataTypes()
 			if LuauCompileUserdataInfo then
 				while true do
@@ -126,7 +127,8 @@ local function Decompile(bytecode)
 					end
 
 					local nameRef = reader:nextVarInt()
-					userdataTypes[index] = nameRef
+					userdataTypes[index] = stringTable[nameRef]
+					hasUserdataTypes = true
 				end
 			end
 		end
@@ -463,11 +465,14 @@ local function Decompile(bytecode)
 		readStringTable()
 		if bytecodeVersion > 5 then
 			readUserdataTypes()
+			if Luau.SetUserdataTypeNames then
+				Luau:SetUserdataTypeNames(userdataTypes)
+			end
 		end
 		readProtoTable()
 
-		if #userdataTypes > 0 then
-			warn("please send the bytecode to me so i can add support for userdata types. thanks!")
+		if hasUserdataTypes and not Luau.SetUserdataTypeNames then
+			warn("userdata type names were found in the bytecode, but this build cannot register them")
 		end
 
 		local mainProtoId = reader:nextVarInt()
