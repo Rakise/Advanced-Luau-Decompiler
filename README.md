@@ -6,6 +6,8 @@ no update anymore this is last time.
 
 this version fast than original btw.
 
+im wonder why this still work lol.
+
 ---
 ## Loadstring
 ```lua
