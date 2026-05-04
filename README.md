@@ -1,13 +1,7 @@
 # Advanced Luau Decompiler
-
-better to rewrite it.
-
-no update anymore this is last time.
-
-this version fast than original btw.
-
-im wonder why this still work lol.
-
+- better to rewrite it.
+- no update anymore this is last time.
+- this version fast than original btw.
 ---
 ## Loadstring
 ```lua
